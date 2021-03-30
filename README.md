@@ -20,18 +20,18 @@ _Install via `apt-get` or `snap`_
 2. Add heroku as a remote `heroku git:remote -a afids-validator`
 3. Set up python virtual environment `python -m virtualenv <venv directory>`
 4. In virtual environment, install required modules `pip install -r requirements.txt --no-cache-dir`
-5. Create a superuser via postgres `sudo createuser --interactive`
-6. Create a database via postgres `createdb fid_db`
+5. Create a superuser via postgres `sudo -u postgres createuser <user>`
+6. Create a database via postgres `sudo -u postgres createdb -O <user> <db>`
 7. Set password for the created database
     ```
-    psql fid_db
+    sudo -u posgres psql <db>
     \password
     ```
 8. Create environment for development `touch .env`
 9. Add configuration to `.env` file
    ```
    export APP_SETTINGS="config.DevelopmentConfig"
-   export DATABASE_URL="postgresql://<user>:<password>@localhost/fid_db"
+   export DATABASE_URL="postgresql://<user>:<password>@localhost/<db>"
    ```
 10. `source .env`
 11. `python manage.py db upgrade`
