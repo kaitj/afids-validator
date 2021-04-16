@@ -36,3 +36,6 @@ _Install via `apt-get` or `snap`_
 12. `python manage.py runserver`
 
 If there are no errors, you can test it out locally at http://localhost:5000
+
+
+
