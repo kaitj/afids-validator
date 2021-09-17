@@ -4,14 +4,14 @@ import os
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
-from controller import app, db
+from afidsvalidator import create_app
+from afidsvalidator.model import db
 
-app.config.from_object(os.environ["APP_SETTINGS"])
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+# Set up app
+app = create_app()
 
-migrate = Migrate(app, db)
+# Set up db
 manager = Manager(app)
-
 manager.add_command("db", MigrateCommand)
 
 if __name__ == "__main__":
