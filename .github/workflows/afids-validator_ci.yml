@@ -112,8 +112,19 @@ jobs:
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
 
+  bump_version:
+    name: Draft and update release
+    needs: [linting]
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Draft and update change log
+          uses: release-drafter/release-drafter@v5
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   deploy:
-    name: Heroku deployment
+    name: Deploy and release
     needs: [test]
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
@@ -124,9 +135,36 @@ jobs:
         with:
           ref: refs/heads/master
 
-      - name: Deploy heroku app
-        uses: akhileshns/heroku-deploy@v3.0.4
+      # - name: Deploy heroku app
+      #   uses: akhileshns/heroku-deploy@v3.0.4
+      #   with:
+      #     heroku_api_key: ${{ secrets.HEROKU_API_KEY }} # Heroku API Key
+      #     heroku_app_name: afids-validator # Heroku app name
+      #     heroku_email: ${{ secrets.HEROKU_EMAIL }} # Heroku email
+
+      - name: Get current version
+        id: current_version
+        uses: pozetronic/github-action-get-latest-release@master
         with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }} # Heroku API Key
-          heroku_app_name: afids-validator # Heroku app name
-          heroku_email: ${{ secrets.HEROKU_EMAIL }} # Heroku email
+          repository: afids/afids-validator
+          excludes: prerelease, draft
+
+      - name: Publish change log
+        id: update_version
+        uses: release-drafter/release-drafter@v5
+        with:
+          publish: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update setup.py version
+        uses: jacobtomlinson/gha-find-replace@master
+        with:
+          include: "setup.py"
+          find: "version=${{ steps.current_version.outputs.release }}"
+          replace: "version=${{ steps.update_version.outputs.tag_name }}"
+
+      - name: Push to master
+        uses: mikeal/publish-to-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
