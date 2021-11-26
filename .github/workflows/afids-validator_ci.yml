@@ -33,12 +33,15 @@ jobs:
           current_version=`grep 'version=*' setup.py | sed 's/version=//' | tr -d '",'`
           if [[ "$current_version" == *"-pre"* ]]; then
             current_bump=${current_version##*pre}
-            echo next_bump=`expr $((current_bump)) + 1`
+            echo next_bump=`expr ${{ current_bump + 1 }}`
             echo '::set-output name=next_version::${{ steps.release-drafter.outputs.name }}-pre${next_bump}"'
           else
             next_version=${NEXT_VERSION}-pre1
             echo '::set-output name=next_version::${{ steps.release-drafter.outputs.name }}-pre1"'
           fi
+
+      - name: Check next version
+        run: echo ${{ steps.prerelease-version.outputs.next_version }}
 
       # - name: Select Python ${{ matrix.python-version }}
       #   uses: actions/setup-python@v2
