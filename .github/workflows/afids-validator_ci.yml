@@ -36,7 +36,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check next version
-        run: echo ${{ steps.prerelease-version.outputs.next_version }}
+        run: echo ${{ steps.prerelease-version.outputs.version_tag }}
 
       # - name: Select Python ${{ matrix.python-version }}
       #   uses: actions/setup-python@v2
