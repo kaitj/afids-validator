@@ -133,7 +133,6 @@ jobs:
         uses: zwaldowski/semver-release-action@v2
         id: prerelease-version
         with:
-          dry_run: true
           prefix: v
           preid: prerelease
           bump: prerelease
@@ -143,8 +142,8 @@ jobs:
         uses: jacobtomlinson/gha-find-replace@master
         with:
           include: "setup.py"
-          find: "v(?:([0-9]+.[0-9]+.[0-9]+.+)|([0-9]+.[0-9]+.[0-9]+))"
-          replace: "${{ steps.prerelease-version.outputs.version_tag }}"
+          find: 'v(?:([0-9]+.[0-9]+.[0-9]+.+)|([0-9]+.[0-9]+.[0-9]+))'
+          replace: '${{ steps.prerelease-version.outputs.version_tag }}"'
 
       - name: Commit updates
         id: git-commit
