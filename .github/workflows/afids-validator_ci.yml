@@ -33,6 +33,7 @@ jobs:
         with:
           dry_run: true
           bump: prerelease
+          preid: prerelease
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check next version
