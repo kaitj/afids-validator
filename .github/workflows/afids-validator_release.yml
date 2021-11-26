@@ -19,6 +19,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Print author
+        run: |
+          echo "Author: ${{ github.event.inputs.author }}"
+          echo "Date: ${{ github.event.inputs.date }}"
+          echo "Comments: ${{ github.event.inputs.comments }}"
+
       - uses: actions/checkout@master
         with:
           ref: refs/heads/master
