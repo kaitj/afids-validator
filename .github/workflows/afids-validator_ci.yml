@@ -136,9 +136,9 @@ jobs:
           if [[ "$current_version" == *"-pre"* ]]; then
             current_bump=${current_version##*[!0-9]}
             current_prefix=${current_version%%$n}
-            echo "::set-output name=next_version::$current_prefix$((current_bump+1))"
+            echo '::set-output name=next_version::$current_prefix$((current_bump+1))"'
           else
-            echo "::set-output name=next_version::${{ steps.release-drafter.outputs.name }}-pre1"
+            echo '::set-output name=next_version::${{ steps.release-drafter.outputs.name }}-pre1"'
           fi
 
       - name: Update setup.py version
