@@ -27,18 +27,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check pre-release
+      - name: Bump pre-release version
+        uses: zwaldowski/semver-release-action@v1
         id: prerelease-version
-        run: |
-          current_version=`grep 'version=*' setup.py | sed 's/version=//' | tr -d '",'`
-          if [[ "$current_version" == *"-pre"* ]]; then
-            current_bump=${current_version##*pre}
-            echo ${{ current_bump }}
-            echo '::set-output name=next_version::${{ steps.release-drafter.outputs.name }}-pre${next_bump}"'
-          else
-            next_version=${NEXT_VERSION}-pre1
-            echo '::set-output name=next_version::${{ steps.release-drafter.outputs.name }}-pre1"'
-          fi
+        with:
+          dry_run: true
+          bump: prerelease
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check next version
         run: echo ${{ steps.prerelease-version.outputs.next_version }}
