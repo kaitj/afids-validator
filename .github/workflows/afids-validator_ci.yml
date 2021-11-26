@@ -137,7 +137,8 @@ jobs:
           current_version=`grep 'version=*' setup.py | sed 's/version=//' | tr -d '",'`
           if [[ "$current_version" == *"-pre"* ]]; then
             current_bump=${current_version##*pre}
-            next_version=${NEXT_VERSION}-pre${((current_bump+1))}
+            next_bump=$(( $current_bump + 1 ))
+            next_version=${NEXT_VERSION}-pre${next_bump}
             echo '::set-output name=next_version::$(next_version)"'
           else
             next_version=${NEXT_VERSION}-pre1
