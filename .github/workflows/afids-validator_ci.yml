@@ -33,7 +33,7 @@ jobs:
           current_version=`grep 'version=*' setup.py | sed 's/version=//' | tr -d '",'`
           if [[ "$current_version" == *"-pre"* ]]; then
             current_bump=${current_version##*pre}
-            echo ${current_bump}
+            echo ${{ current_bump }}
             echo '::set-output name=next_version::${{ steps.release-drafter.outputs.name }}-pre${next_bump}"'
           else
             next_version=${NEXT_VERSION}-pre1
