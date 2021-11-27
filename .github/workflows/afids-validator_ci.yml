@@ -146,7 +146,7 @@ jobs:
       - name: Bump version
         id: bump-version
         run: |
-          echo 'NEXT_BUMP=$( echo `expr ${{ steps.bump-version.outputs.version }} + 1`' >> $GITHUB_ENV
+          echo 'NEXT_BUMP=$( echo `expr ${{ steps.bump-version.outputs.version }} + 1`)' >> $GITHUB_ENV
 
       - name: Update setup.py version
         uses: jacobtomlinson/gha-find-replace@master
@@ -157,7 +157,7 @@ jobs:
 
       - name: Commit updates
         env:
-          LATEST_VERSION: ${{ steps.release-drafter.outputs.name }}-prerelease.${{ env.NEXT_BUMP}}
+          LATEST_VERSION: ${{ steps.release-drafter.outputs.name }}-prerelease.${{ env.NEXT_BUMP }}
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
