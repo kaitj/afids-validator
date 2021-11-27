@@ -134,7 +134,7 @@ jobs:
         run: |
           echo '::set-output name=version::$(cat setup.py | grep -o -E 'v[0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]]')'
 
-      - name: Set pre-release version
+      - name: Get previous bump version
         id: previous-version
         run: |
           if [[ "${{ steps.get-version.outputs.version }}" != *"-prerelease."* ]]; then
@@ -143,21 +143,21 @@ jobs:
             echo '::set-output name=version::$(echo ${{ steps.get-version.outputs.version }} | cut -d '.' -f 4)'
           fi
 
-      - name: Bump version
+      - name: Update bump version
         id: bump-version
         run: |
-          echo '::set-output name=version::$(echo `expr ${{ steps.previous-version.outputs.version }} + 1`)'
+          echo 'NEXT_BUMP=`expr ${{ steps.previous-version.outputs.version }} + 1`' >> $GITHUB_ENV
 
       - name: Update setup.py version
         uses: jacobtomlinson/gha-find-replace@master
         with:
           include: "setup.py"
           find: 'v(?:([0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]])|([0-9]+.[0-9]+.[0-9]+[^_[:punct:]]))'
-          replace: '${{steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}'
+          replace: '${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}'
 
       - name: Commit updates
         env:
-          LATEST_VERSION: ${{steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}
+          LATEST_VERSION: ${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
