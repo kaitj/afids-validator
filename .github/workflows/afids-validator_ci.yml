@@ -45,13 +45,13 @@ jobs:
         env:
           previous-version: ${{ steps.previous-version.outputs.version }}
         run: |
-          echo '::set-output name=version::$(($previous_version + 1))'
+          echo '::set-output name=version::$(($previous-version + 1))'
 
       - name: Check version
         env:
           test: ${{ steps.bump-version.outputs.version }}
         run: |
-          echo $test
+          echo '${{ steps.release-drafter.outputs.name}}-prerelease.$test'
 
 
   #     - name: Select Python ${{ matrix.python-version }}
