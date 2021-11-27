@@ -149,14 +149,15 @@ jobs:
         run: |
           echo '::set-output name=version::$(($previous_version+1))'
 
+      - run: |
+          echo '${{ steps.bump-version.outputs.version }}'
+
       - name: Update setup.py version
         uses: jacobtomlinson/gha-find-replace@master
-        env:
-          bump-version: ${{ steps.bump-version.outputs.version }}
         with:
           include: "setup.py"
           find: 'v(?:([0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]])|([0-9]+.[0-9]+.[0-9]+[^_[:punct:]]))'
-          replace: '${{ steps.release-drafter.outputs.name }}-prerelease.${bump_version}"'
+          replace: '${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}"'
 
       - name: Commit updates
         env:
