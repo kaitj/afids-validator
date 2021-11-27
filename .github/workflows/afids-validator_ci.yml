@@ -45,7 +45,7 @@ jobs:
         env:
           previous-version: ${{ steps.previous-version.outputs.version }}
         run: |
-          echo ${{ previous_version }}
+          echo ${{ env.previous_version }}
           echo '::set-output name=version::$(($previous_version+1))'
 
       - run: |
