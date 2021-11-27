@@ -129,26 +129,36 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bump pre-release version
-        uses: zwaldowski/semver-release-action@v2
-        id: prerelease-version
-        with:
-          prefix: v
-          preid: prerelease
-          bump: prerelease
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get previous version
+        id: get-version
+        run: |
+          echo '::set-output name=version::$(cat setup.py | grep -o -E 'v[0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]]')'
+
+      - name: Set pre-release version
+        id: previous-version
+        run: |
+          if [[ "${{ steps.get-version.outputs.version }}" != *"-prerelease."* ]]; then
+            echo '::set-output name=version::0'
+          else
+            echo '::set-output name=version::$(echo ${{ steps.get-version.outputs.version }} | cut -d '.' -f 4)'
+          fi
+
+      - name: Bump version
+        id: bump-version
+        run: |
+          echo ${{ steps.previous-version.outputs.version }}
+          echo '::set-output name=version::$(expr ${{ steps.previous-version.outputs.version }} + 1)'
 
       - name: Update setup.py version
         uses: jacobtomlinson/gha-find-replace@master
         with:
           include: "setup.py"
-          find: 'v(?:([0-9]+.[0-9]+.[0-9]+.+)|([0-9]+.[0-9]+.[0-9]+))'
-          replace: '${{ steps.prerelease-version.outputs.version_tag }}"'
+          find: 'v(?:([0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]])|([0-9]+.[0-9]+.[0-9]+[^_[:punct:]]))'
+          replace: '${{steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}'
 
       - name: Commit updates
-        id: git-commit
         env:
-          LATEST_VERSION: ${{ steps.prerelease-version.outputs.version_tag }}
+          LATEST_VERSION: ${{steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
