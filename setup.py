@@ -18,4 +18,4 @@ setup(
         "python-dotenv~=0.17",
         "WTForms~=2.2",
     ],
-    version="v1.0.9-prerelease.$(expr 0 + 1))
+    version="v1.0.9-prerelease.$(echo `expr $(echo $(cat setup.py | grep -o -E v[0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]]) | cut -d . -f 4) + 1`)
