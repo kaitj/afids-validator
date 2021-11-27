@@ -146,7 +146,7 @@ jobs:
       - name: Bump version
         id: bump-version
         run: |
-          echo '::set-output name=version::$({{ expr ${{ steps.previous-version.outputs.version }} + 1` }})'
+          echo '::set-output name=version::${{ expr ${{ steps.previous-version.outputs.version }} + 1` }}'
 
       - name: Update setup.py version
         uses: jacobtomlinson/gha-find-replace@master
