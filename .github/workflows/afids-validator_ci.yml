@@ -20,108 +20,6 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-      - name: Select Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache environment
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-pip-${{ hashFiles('**/setup.py') }}
-          restore-keys: |
-            ${{ env.pythonLocation }}-pip
-
-      - name: Setup envrionment
-        if: steps.cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Start PostgreSQL services
-        shell: bash
-        run: |
-          sudo systemctl start postgresql.service
-          pg_isready
-
-      - name: Setup PostgreSQL db
-        shell: bash
-        env:
-          psql_db_owner: ${{ secrets.PSQL_DB_OWNER }}   # PostgreSQL User
-          psql_db_pw: ${{ secrets.PSQL_DB_PASS }}       # PostgreSQL Pass
-          psql_db_name: ${{ secrets.PSQL_DB_NAME }}     # PostgreSQL DB
-        run: |
-          sudo -u postgres psql --command="CREATE USER $psql_db_owner PASSWORD '$psql_db_pw'"
-          sudo -u postgres createdb --owner=$psql_db_owner $psql_db_name
-          PGPASSWORD=$psql_db_pw psql --username=$psql_db_owner --host=localhost --list $psql_db_name
-
-      - name: Test AFIDs validator
-        shell: bash
-        env:
-          FLASK_ENV: ${{ secrets.APP_SETTINGS }}     # Sets flask environment
-          DATABASE_URL: postgresql://${{ secrets.PSQL_DB_OWNER }}:${{ secrets.PSQL_DB_PASS }}@localhost/${{ secrets.PSQL_DB_NAME }}
-        run: |
-          python -m unittest
-
-  linting:
-    name: Lint code
-    needs: [test]
-    if: github.event.pull_request.merged == false
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6]
-
-    steps:
-      - name: Checkout pull request branch
-        uses: actions/checkout@master
-        with:
-          ref: ${{ github.sha }}
-
-      - name: Select Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install black
-        run: |
-          python -m pip install --upgrade pip
-          pip install black
-
-      - name: Run black
-        uses: wearerequired/lint-action@v1
-        with:
-          black: true
-          black_args: "-l 79"
-          black_extensions: py
-          auto_fix: true
-
-  assign:
-    name: Reviewer assignment
-    needs: [linting]
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.assignee == null
-
-    steps:
-      - name: Assign reviewer
-        uses: kentaro-m/auto-assign-action@v1.1.2
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-
-  deploy_test:
-    name: Deploy test heroku app
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
-
-    steps:
-      - name: Checkout master
-        uses: actions/checkout@master
-        with:
-          ref: refs/heads/master
-
       - name: Draft and update change log
         uses: release-drafter/release-drafter@v5
         id: release-drafter
@@ -147,34 +45,167 @@ jobs:
         env:
           previous-version: ${{ steps.previous-version.outputs.version }}
         run: |
+          echo $previous_version
           echo '::set-output name=version::$(($previous_version+1))'
 
       - run: |
           echo '${{ steps.bump-version.outputs.version }}'
 
-      - name: Update setup.py version
-        uses: jacobtomlinson/gha-find-replace@master
-        with:
-          include: "setup.py"
-          find: 'v(?:([0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]])|([0-9]+.[0-9]+.[0-9]+[^_[:punct:]]))'
-          replace: '${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}"'
+  #     - name: Select Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
 
-      - name: Commit updates
-        env:
-          LATEST_VERSION: ${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git diff-index --quiet HEAD || git commit -m "Bump version to $LATEST_VERSION" -a
+  #     - name: Cache environment
+  #       uses: actions/cache@v2
+  #       id: cache
+  #       with:
+  #         path: ${{ env.pythonLocation }}
+  #         key: ${{ env.pythonLocation }}-pip-${{ hashFiles('**/setup.py') }}
+  #         restore-keys: |
+  #           ${{ env.pythonLocation }}-pip
 
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Setup envrionment
+  #       if: steps.cache.outputs.cache-hit != 'true'
+  #       shell: bash
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install -r requirements.txt
 
-      - name: Deploy test heroku app
-        uses: akhileshns/heroku-deploy@v3.0.4
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: afids-validator-test
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+  #     - name: Start PostgreSQL services
+  #       shell: bash
+  #       run: |
+  #         sudo systemctl start postgresql.service
+  #         pg_isready
+
+  #     - name: Setup PostgreSQL db
+  #       shell: bash
+  #       env:
+  #         psql_db_owner: ${{ secrets.PSQL_DB_OWNER }}   # PostgreSQL User
+  #         psql_db_pw: ${{ secrets.PSQL_DB_PASS }}       # PostgreSQL Pass
+  #         psql_db_name: ${{ secrets.PSQL_DB_NAME }}     # PostgreSQL DB
+  #       run: |
+  #         sudo -u postgres psql --command="CREATE USER $psql_db_owner PASSWORD '$psql_db_pw'"
+  #         sudo -u postgres createdb --owner=$psql_db_owner $psql_db_name
+  #         PGPASSWORD=$psql_db_pw psql --username=$psql_db_owner --host=localhost --list $psql_db_name
+
+  #     - name: Test AFIDs validator
+  #       shell: bash
+  #       env:
+  #         FLASK_ENV: ${{ secrets.APP_SETTINGS }}     # Sets flask environment
+  #         DATABASE_URL: postgresql://${{ secrets.PSQL_DB_OWNER }}:${{ secrets.PSQL_DB_PASS }}@localhost/${{ secrets.PSQL_DB_NAME }}
+  #       run: |
+  #         python -m unittest
+
+  # linting:
+  #   name: Lint code
+  #   needs: [test]
+  #   if: github.event.pull_request.merged == false
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       python-version: [3.6]
+
+  #   steps:
+  #     - name: Checkout pull request branch
+  #       uses: actions/checkout@master
+  #       with:
+  #         ref: ${{ github.sha }}
+
+  #     - name: Select Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+
+  #     - name: Install black
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install black
+
+  #     - name: Run black
+  #       uses: wearerequired/lint-action@v1
+  #       with:
+  #         black: true
+  #         black_args: "-l 79"
+  #         black_extensions: py
+  #         auto_fix: true
+
+  # assign:
+  #   name: Reviewer assignment
+  #   needs: [linting]
+  #   runs-on: ubuntu-latest
+  #   if: github.event.pull_request.assignee == null
+
+  #   steps:
+  #     - name: Assign reviewer
+  #       uses: kentaro-m/auto-assign-action@v1.1.2
+  #       with:
+  #         repo-token: "${{ secrets.GITHUB_TOKEN }}"
+
+  # deploy_test:
+  #   name: Deploy test heroku app
+  #   runs-on: ubuntu-latest
+  #   if: github.event.pull_request.merged == true
+
+    # steps:
+    #   - name: Checkout master
+    #     uses: actions/checkout@master
+    #     with:
+    #       ref: refs/heads/master
+
+    #   - name: Draft and update change log
+    #     uses: release-drafter/release-drafter@v5
+    #     id: release-drafter
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    #   - name: Get previous version
+    #     id: get-version
+    #     run: |
+    #       echo '::set-output name=version::$(cat setup.py | grep -o -E 'v[0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]]')'
+
+    #   - name: Set pre-release version
+    #     id: previous-version
+    #     run: |
+    #       if [[ "${{ steps.get-version.outputs.version }}" != *"-prerelease."* ]]; then
+    #         echo '::set-output name=version::0'
+    #       else
+    #         echo '::set-output name=version::$(echo ${{ steps.get-version.outputs.version }} | cut -d '.' -f 4)'
+    #       fi
+
+    #   - name: Bump version
+    #     id: bump-version
+    #     env:
+    #       previous-version: ${{ steps.previous-version.outputs.version }}
+    #     run: |
+    #       echo '::set-output name=version::$(($previous_version+1))'
+
+    #   - run: |
+    #       echo '${{ steps.bump-version.outputs.version }}'
+
+    #   - name: Update setup.py version
+    #     uses: jacobtomlinson/gha-find-replace@master
+    #     with:
+    #       include: "setup.py"
+    #       find: 'v(?:([0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]])|([0-9]+.[0-9]+.[0-9]+[^_[:punct:]]))'
+    #       replace: '${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}"'
+
+    #   - name: Commit updates
+    #     env:
+    #       LATEST_VERSION: ${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}
+    #     run: |
+    #       git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    #       git config --local user.name "github-actions[bot]"
+    #       git diff-index --quiet HEAD || git commit -m "Bump version to $LATEST_VERSION" -a
+
+    #   - name: Push changes
+    #     uses: ad-m/github-push-action@master
+    #     with:
+    #       github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    #   - name: Deploy test heroku app
+    #     uses: akhileshns/heroku-deploy@v3.0.4
+    #     with:
+    #       heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+    #       heroku_app_name: afids-validator-test
+    #       heroku_email: ${{ secrets.HEROKU_EMAIL }}
