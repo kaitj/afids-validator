@@ -45,13 +45,10 @@ jobs:
         env:
           previous-version: ${{ steps.previous-version.outputs.version }}
         run: |
-          echo ${{ env.previous_version }}
-          echo '::set-output name=version::$(($previous_version+1))'
+          echo 'BUMP_VERSION=`echo $(($previous_version+1))`' >> $GITHUB_ENV
 
       - run: |
-          echo '${{ steps.bump-version.outputs.version }}'
-        env:
-          test: ${{ steps.bump-version.outputs.version }}
+          echo '${{ env.BUMP_VERSION }}'
 
   #     - name: Select Python ${{ matrix.python-version }}
   #       uses: actions/setup-python@v2
