@@ -7,8 +7,7 @@ on:
 jobs:
   test:
     name: Setup environment & test
-    if: |
-      github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     environment: TEST
     strategy:
@@ -145,8 +144,10 @@ jobs:
 
       - name: Bump version
         id: bump-version
+        env:
+          previous-version: ${{ steps.previous-version.outputs.version }}
         run: |
-          echo '::set-output name=version::$(expr ${{ steps.previous-version.outputs.version + 1 }})'
+          echo '::set-output name=version::$(($previous_version+1))'
 
       - name: Update setup.py version
         uses: jacobtomlinson/gha-find-replace@master
