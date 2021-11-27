@@ -151,8 +151,8 @@ jobs:
       - name: Set-version
         id: set-version
         run: |
-          NEXT_VERSION=`echo ${{ steps.release-drafter.outputs.version }}-prerelease.${{ steps.set-version.outputs.version }}`
-          echo 'VERSION=$(echo $NEXT_VERSION)' >> $GITHUB_ENV
+          NEXT_VERSION=`echo ${{ steps.release-drafter.outputs.version }}-prerelease.${{ steps.bump-version.outputs.version }}`
+          echo 'VERSION=$(echo ${{ NEXT_VERSION }} )' >> $GITHUB_ENV
 
       - name: Update setup.py version
         uses: jacobtomlinson/gha-find-replace@master
