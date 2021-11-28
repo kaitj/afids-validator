@@ -145,23 +145,20 @@ jobs:
       - name: Bump version
         id: bump-version
         env:
-          previous-version: ${{ steps.previous-version.outputs.version }}
+          BUMP_VER: ${{ steps.previous-version.outputs.version }}
         run: |
-          echo '::set-output name=version::$(($previous_version+1))'
-
-      - run: |
-          echo '${{ steps.bump-version.outputs.version }}'
+          echo "NEW_BUMP=$(($BUMP_VER + 1))" >> $GITHUB_ENV
 
       - name: Update setup.py version
         uses: jacobtomlinson/gha-find-replace@master
         with:
           include: "setup.py"
           find: 'v(?:([0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]])|([0-9]+.[0-9]+.[0-9]+[^_[:punct:]]))'
-          replace: '${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}"'
+          replace: '${{ steps.release-drafter.outputs.name }}-prerelease.${{ env.NEW_BUMP }}"'
 
       - name: Commit updates
         env:
-          LATEST_VERSION: ${{ steps.release-drafter.outputs.name }}-prerelease.${{ steps.bump-version.outputs.version }}
+          LATEST_VERSION: ${{ steps.release-drafter.outputs.name }}-prerelease.${{ env.NEW_BUMP }}
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
