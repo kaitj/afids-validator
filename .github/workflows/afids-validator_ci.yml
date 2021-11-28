@@ -129,13 +129,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get previous release version
-        id: previous-release
         run: |
-          echo '::set-output name=version::$(cat setup.py | grep -o -E 'v[0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]]')'
+          echo "PREV_VER=$(cat setup.py | grep -o -E 'v[0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]]')" >> $GITHUB_ENV
 
       - name: Get previous bump version
         env:
-          PREV_VER: ${{ steps.previous-release.outputs.version }}
+          PREV_VER: ${{ env.PREV_VER }}
         run: |
           if [[ "$PREV_VER" != *"-prerelease."* ]]; then
             echo "OLD_BUMP=0" >> $GITHUB_ENV
