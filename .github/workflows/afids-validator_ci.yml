@@ -49,7 +49,7 @@ jobs:
 
       - name: Check version
         run: |
-          echo "${{ env.NEW_BUMP }}"
+          echo "${{ steps.release-drafter.outputs.name }}-prerelease.${{ env.NEW_BUMP }}"
 
 
   #     - name: Select Python ${{ matrix.python-version }}
