@@ -128,24 +128,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get previous version
-        id: get-version
+      - name: Get previous release version
+        id: previous-release
         run: |
           echo '::set-output name=version::$(cat setup.py | grep -o -E 'v[0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]]')'
 
-      - name: Set pre-release version
-        id: previous-version
+      - name: Get previous bump version
+        env:
+          PREV_VER: ${{ steps.previous-release.outputs.version }}
         run: |
-          if [[ "${{ steps.get-version.outputs.version }}" != *"-prerelease."* ]]; then
-            echo '::set-output name=version::0'
+          if [[ "$PREV_VER" != *"-prerelease."* ]]; then
+            echo "OLD_BUMP=0" >> $GITHUB_ENV
           else
-            echo '::set-output name=version::$(echo ${{ steps.get-version.outputs.version }} | cut -d '.' -f 4)'
+            echo "OLD_BUMP=$(echo $PREV_VER | cut -d '.' -f 4)" >> $GITHUB_ENV
           fi
 
       - name: Bump version
-        id: bump-version
         env:
-          BUMP_VER: ${{ steps.previous-version.outputs.version }}
+          BUMP_VER: ${{ env.OLD_BUMP }}
         run: |
           echo "NEW_BUMP=$(($BUMP_VER + 1))" >> $GITHUB_ENV
 
