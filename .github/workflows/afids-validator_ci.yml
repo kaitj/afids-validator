@@ -130,7 +130,7 @@ jobs:
 
       - name: Get previous release version
         run: |
-          echo "PREV_VER=$(cat setup.py | grep -o -E 'v[0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]]')" >> $GITHUB_ENV
+          echo "PREV_VER=$(cat setup.py | grep -o -E 'v(?:([0-9]+.[0-9]+.[0-9]+.+[^_[:punct:]])|([0-9]+.[0-9]+.[0-9]+[^_[:punct:]]))')" >> $GITHUB_ENV
 
       - name: Get previous bump version
         env:
