@@ -19,3 +19,4 @@ setup(
         "WTForms~=2.2",
     ],
     version="v1.0.9-prerelease.1"
+)
