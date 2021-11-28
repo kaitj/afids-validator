@@ -45,7 +45,7 @@ jobs:
         env:
           BUMP_VER: ${{ steps.previous-version.outputs.version }}
         run: |
-          echo '::set-output name=version::$(echo $(($BUMP_VER + 1)) )'
+          echo '::set-output name=version::$(($BUMP_VER + 1))'
 
       - name: Check version
         env:
